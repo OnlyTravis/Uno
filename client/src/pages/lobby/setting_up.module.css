@@ -1,0 +1,15 @@
+.setting_up_page {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(115, 115, 115);
+}
+.setting_up_container {
+    width: 60vw;
+    height: 80vh;
+    border-radius: 20px;
+    background-color: rgb(214, 203, 160);
+}
