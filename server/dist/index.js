@@ -27,31 +27,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const express_ws_1 = __importDefault(require("express-ws"));
 const cors_1 = __importDefault(require("cors"));
 const path = __importStar(require("path"));
 const dotenv = __importStar(require("dotenv"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // Importing Routers 
 const auth_1 = __importDefault(require("./routers/auth"));
-const lobbys_1 = __importStar(require("./routers/lobbys"));
+const websocket_1 = __importDefault(require("./code/websocket"));
 dotenv.config();
 const PORT = process.env.PORT ?? 3000;
 // Initialize Web App
 const app = (0, express_1.default)();
-(0, express_ws_1.default)(app);
 app.set('view engine', 'pug');
 app.use((0, cors_1.default)()); // remove in production
-app.use((0, cookie_parser_1.default)());
+app.use((0, cookie_parser_1.default)(process.env.COOKIE_SECRET));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.static(path.join(__dirname, '../build')));
-// ###For Testing
-app.all("/*", (req, res, next) => {
+app.get("/*", (req, res, next) => {
     console.log("============================================================");
-    console.log(`Request_url : ${req.url}`);
+    console.log(`GET_Request_url : ${req.url}`);
+    console.log(`IP: ${req.ip}`);
     console.log("Request_body :");
     console.log(req.body);
+    console.log("Signed_Cookies : ");
+    console.log(req.signedCookies);
+    console.log("============================================================");
+    next();
+});
+app.post("/*", (req, res, next) => {
+    console.log("============================================================");
+    console.log(`POST_Request_url : ${req.url}`);
+    console.log(`IP: ${req.ip}`);
+    console.log("Request_body :");
+    console.log(req.body);
+    console.log("Signed_Cookies : ");
+    console.log(req.signedCookies);
     console.log("============================================================");
     next();
 });
@@ -61,12 +72,11 @@ app.get(['/', '/login'], (req, res) => {
 });
 // Auth Router includes check for authorization
 app.use(auth_1.default);
-(0, lobbys_1.mountRouter)();
-app.use("/lobby", lobbys_1.default);
 app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
-// Launch App
-app.listen(PORT, () => {
+// Launch Application
+const server = app.listen(PORT, () => {
     console.log(`Backend Server Opened on Port : ${PORT}`);
 });
+(0, websocket_1.default)(server);

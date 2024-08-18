@@ -1,15 +1,18 @@
+/*
 import express from 'express';
+
 const router = express.Router();
-
-
-
 
 
 export const mountRouter = () => {
     router.ws('/echo', function(ws, req) {
         ws.on('message', function(msg) {
-          ws.send(msg);
+            console.log("--------------------------------")
+            console.log("Websocket Message:")
+            console.log(msg)
+            console.log("--------------------------------")
+            ws.send("msgdadsdadssasdsdsadas");
         });
     }); 
 }
-export default router;
+export default router;*/

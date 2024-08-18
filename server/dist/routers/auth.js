@@ -3,13 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.cookieIsValid = cookieIsValid;
 const express_1 = __importDefault(require("express"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const sessions_1 = require("../code/sessions");
+const uuid_1 = require("uuid");
 const lobby_1 = require("../code/lobby");
 const router = express_1.default.Router();
+function cookieIsValid(cookie) {
+    return (cookie && cookie.user_session_id && cookie.username);
+}
 // Login router
-router.post("/auth", (req, res) => {
+router.post("/login", (req, res) => {
     // Filter requests with no/invalid username
     if (!req.body.username) {
         res.status(400).json({ message: "Please provide a username" });
@@ -19,25 +22,35 @@ router.post("/auth", (req, res) => {
         res.status(400).json({ message: "Username too long!" });
         return;
     }
-    // Signing login info with secret in .env
-    const jwt_token = jsonwebtoken_1.default.sign(req.body.username, process.env.SECRET);
+    // Add Cookie
+    const user_session_id = (0, uuid_1.v4)();
+    res.cookie("username", req.body.username, { signed: true, domain: "" });
+    res.cookie("user_session_id", user_session_id, { signed: true });
     // Join Lobby as Spectator
-    (0, lobby_1.userJoin)(req.body.username, jwt_token);
-    // Create Session + Send response to client
-    (0, sessions_1.createSession)(req.body.username, jwt_token);
+    (0, lobby_1.userJoin)(req.body.username, user_session_id);
+    // Send response to client
     res.status(200).json({
         message: "Welcome",
-        token: jwt_token
     });
+});
+// For Client to check if they are authorized
+router.get("/is_auth", (req, res) => {
+    console.log("is_auth");
+    console.log(req.cookie);
+    console.log(req.cookies);
+    console.log(req.signedCookies);
+    if (!cookieIsValid(req.signedCookies)) {
+        res.status(200).send(false);
+        return;
+    }
+    res.status(200).send(true);
 });
 // Check Authorization
 router.all("/*", (req, res, next) => {
-    if (!req.cookies || !req.cookies._auth) {
+    if (!cookieIsValid(req.signedCookies)) {
         res.status(401).send("Unauthoized Access");
         return;
     }
-    const username = jsonwebtoken_1.default.verify(req.cookies._auth, process.env.SECRET);
-    if (username === JSON.parse(req.cookies._auth_state).username)
-        next();
+    next();
 });
 exports.default = router;

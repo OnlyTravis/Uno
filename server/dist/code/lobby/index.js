@@ -33,7 +33,8 @@ const userJoin = (username, jwt_token) => {
     // Add user to specator
     spectators.push({
         username: username,
-        user_id: jwt_token
+        user_id: jwt_token,
+        is_leader: false
     });
     return true;
 };
@@ -52,7 +53,8 @@ const spectatorJoinPlayer = (user_id) => {
     players.push({
         username: removed_spectator.username,
         user_id: removed_spectator.user_id,
-        deck: []
+        deck: [],
+        is_leader: false
     });
     return true;
 };

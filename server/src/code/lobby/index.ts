@@ -8,12 +8,14 @@ interface Card {
 }
 interface Player {
     username: string,
-    user_id: string
-    deck: Card[]
+    user_id: string,
+    deck: Card[],
+    is_leader: boolean
 }
 interface Spectator {
     username: string,
-    user_id: string
+    user_id: string,
+    is_leader: boolean
 }
 interface LobbyOptions {
     max_player: number,
@@ -39,7 +41,8 @@ export const userJoin = (username: string, jwt_token: string) => {
     // Add user to specator
     spectators.push({
         username: username,
-        user_id: jwt_token
+        user_id: jwt_token,
+        is_leader: false
     });
     return true
 }
@@ -59,7 +62,8 @@ export const spectatorJoinPlayer = (user_id): boolean => {
     players.push({
         username: removed_spectator.username,
         user_id: removed_spectator.user_id,
-        deck: []
+        deck: [],
+        is_leader: false
     });
 
     return true;

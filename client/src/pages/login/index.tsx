@@ -1,6 +1,5 @@
 import { ChangeEvent, FC, MouseEvent, useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
-import { useSignIn, useIsAuthenticated } from "react-auth-kit";
 import { useNavigate } from 'react-router-dom'
 
 import default_usernames from "./default_usernames.json";
@@ -15,30 +14,30 @@ const LoginPage:FC = () => {
     } 
 
     // Handle Join Request
-    const signIn = useSignIn();
     const navigate = useNavigate();
-    const isAuthenticated = useIsAuthenticated(); 
     async function join(e: MouseEvent) {
         try {
-            const response = await axios.post(`http://localhost:5000/auth`, { username: Username });// ###change-in-production
-
-            signIn({
-                token: response.data.token,
-                tokenType: 'Bearer',
-                expiresIn: 86400,
-                authState: {username: Username}
-            });
+            const response = await axios.post(`http://localhost:5000/login`, { username: Username });// ###change-in-production
             navigate("/lobby");
         } catch (err) {
             if (err && err instanceof AxiosError) alert(err.response?.data.message);
             else if (err && err instanceof Error) console.log(err)
         }
     }
-    
+
+    // If user is already logged in ---> Send to lobby
     useEffect(() => {
-        console.log(isAuthenticated());
-        if (isAuthenticated()) navigate("/lobby");
+        const p = new Promise(async (res, rej) => {
+            const responce = await axios.get(`http://localhost:5000/is_auth`);
+            if (responce.data) navigate("/lobby");
+        }).catch((err) => {
+            console.error(err);
+        })
     }, [])
+
+    const test = async () => {
+        const responce = await axios.get(`http://localhost:5000/is_auth`);
+    }
 
     // Return Page
     return (
@@ -57,6 +56,7 @@ const LoginPage:FC = () => {
                 <button className={(Username && Username.length <= 20)?"enabled":"disabled"} onClick={join}>Join Lobby</button>
             </div>
         </div>
+        <button onClick={test}>Test</button>
     </div>
     );
 }
